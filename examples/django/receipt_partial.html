@@ -1,0 +1,26 @@
+{# templates/sales/receipt_partial.html #}
+{# Uses SlipDrop's receipt classes so it matches the toast. Django escapes every value. #}
+<div class="sd-r-name">{{ sale.business.name }}</div>
+<div class="sd-r-center">{{ sale.business.address }}</div>
+{% if sale.business.tax_pin %}<div class="sd-r-center">PIN: {{ sale.business.tax_pin }}</div>{% endif %}
+
+<hr class="sd-r-rule">
+<div class="sd-r-row"><span>Receipt</span><span>{{ sale.receipt_number }}</span></div>
+<div class="sd-r-row"><span>Date</span><span>{{ sale.created_at|date:"d M Y H:i" }}</span></div>
+<div class="sd-r-row"><span>Served by</span><span>{{ sale.cashier.get_short_name }}</span></div>
+
+<hr class="sd-r-rule">
+{% for item in sale.items.all %}
+  <div class="sd-r-item">
+    <div class="sd-r-item-name">{{ item.name }}</div>
+    <div class="sd-r-row"><span>{{ item.quantity }} × {{ item.unit_price|floatformat:2 }}</span><span>{{ item.line_total|floatformat:2 }}</span></div>
+  </div>
+{% endfor %}
+
+<hr class="sd-r-rule">
+<div class="sd-r-row"><span>Subtotal</span><span>{{ sale.subtotal|floatformat:2 }}</span></div>
+{% if sale.vat_amount %}<div class="sd-r-row"><span>VAT 16%</span><span>{{ sale.vat_amount|floatformat:2 }}</span></div>{% endif %}
+<div class="sd-r-row sd-r-strong"><span>TOTAL (KES)</span><span>{{ sale.total|floatformat:2 }}</span></div>
+
+<hr class="sd-r-rule">
+<div class="sd-r-foot">Thank you for your visit</div>

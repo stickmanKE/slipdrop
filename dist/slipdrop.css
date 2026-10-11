@@ -1,0 +1,150 @@
+/* SlipDrop — receipt toast. Theme it by overriding the --sd-* variables
+   on :root (or any ancestor of the toast). Everything else is scoped to
+   .sd-* classes so it will not leak into your app. */
+
+.sd-toast {
+  --_slot: var(--sd-slot, #1c2026);
+  --_slot-edge: var(--sd-slot-edge, #323a44);
+  --_text: var(--sd-text, #eef1f4);
+  --_muted: var(--sd-muted, #9aa4b0);
+  --_busy: var(--sd-led-busy, #ffb020);
+  --_ready: var(--sd-led-ready, #3ddc97);
+  --_error: var(--sd-led-error, #ff6b5b);
+  --_font-ui: var(--sd-font-ui, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  --_led: var(--_busy);
+
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: var(--sd-z, 2147483000);
+  width: min(var(--sd-toast-width, 360px), calc(100vw - 24px));
+  box-sizing: border-box;
+  font-family: var(--_font-ui);
+  color: var(--_text);
+  opacity: 0;
+  transform: translate(-50%, -140%);
+  transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+  pointer-events: none;
+}
+.sd-toast.sd-pos-top-right { left: auto; right: 12px; transform: translate(0, -140%); }
+.sd-toast.sd-in { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.sd-toast.sd-pos-top-right.sd-in { transform: translate(0, 0); }
+.sd-toast.sd-busy { --_led: var(--_busy); }
+.sd-toast.sd-ready { --_led: var(--_ready); }
+.sd-toast.sd-error { --_led: var(--_error); }
+
+/* The slot: the printer mouth the paper comes out of */
+.sd-slot {
+  position: relative;
+  z-index: 2;
+  background: var(--_slot);
+  border-radius: 14px 14px 5px 5px;
+  padding: 12px 14px 0;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+/* Premium feed: keep the printer housing steady while the paper emerges. */
+.sd-feeding .sd-slot { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.07); }
+.sd-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.sd-led {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--_led);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--_led) 22%, transparent);
+}
+.sd-busy .sd-led { animation: sd-blink 900ms steps(1, end) infinite; }
+@keyframes sd-blink { 50% { opacity: 0.35; } }
+.sd-title { font-size: 14px; font-weight: 600; line-height: 1.25; }
+.sd-detail { font-size: 12px; line-height: 1.3; color: var(--_muted); }
+.sd-amount { font-size: 18px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sd-status { margin-top: 8px; font-size: 12px; line-height: 1.35; color: var(--_muted); min-height: 16px; transition: color 220ms ease; }
+.sd-error .sd-status { color: var(--_error); }
+
+.sd-actions-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1); }
+.sd-ready .sd-actions-wrap,
+.sd-error .sd-actions-wrap { grid-template-rows: 1fr; }
+.sd-actions-clip { overflow: hidden; min-height: 0; }
+.sd-actions { display: flex; gap: 8px; padding-top: 10px; }
+.sd-btn {
+  flex: 1 1 0;
+  min-height: 38px;
+  padding: 0 14px;
+  font: 600 13px/1 var(--_font-ui);
+  color: var(--_text);
+  background: transparent;
+  border: 1px solid var(--_slot-edge);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.sd-btn:hover { background: rgba(255, 255, 255, 0.07); }
+.sd-btn:focus-visible { outline: 2px solid var(--_ready); outline-offset: 2px; }
+.sd-btn-primary { background: var(--_text); color: var(--_slot); border-color: transparent; }
+.sd-btn-primary:hover { background: color-mix(in srgb, var(--_text) 88%, transparent); }
+
+/* Progress doubles as the mouth of the slot */
+.sd-bar { height: 3px; margin: 12px -14px 0; background: rgba(0, 0, 0, 0.45); border-radius: 0 0 5px 5px; overflow: hidden; }
+.sd-bar > i { display: block; height: 100%; background: var(--_led); transform-origin: left center; transform: scaleX(0); }
+
+/* The paper feed */
+.sd-feed {
+  position: relative;
+  z-index: 1;
+  width: var(--sd-paper-width, 302px);
+  max-width: 100%;
+  margin: 0 auto;
+  height: 0;
+  overflow: hidden;
+  clip-path: inset(0 -28px -28px -28px);
+}
+.sd-feed.sd-scroll { overflow-x: hidden; overflow-y: auto; clip-path: none; overscroll-behavior: contain; }
+.sd-paper {
+  /* The paper is stationary; the feed window below the slot reveals it. */
+  transform: translate3d(0, 0, 0);
+  transform-origin: top center;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.16));
+}
+/* torn edge */
+.sd-paper::after {
+  content: "";
+  display: block;
+  height: 8px;
+  margin-top: -1px;
+  background: var(--sd-paper, #fcfcf9);
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 8px 100%;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 8px 100%;
+}
+
+/* The receipt itself */
+.sd-receipt {
+  --_paper: var(--sd-paper, #fcfcf9);
+  --_ink: var(--sd-ink, #1a1c1f);
+  --_ink-soft: var(--sd-ink-soft, #5b6168);
+  --_font-receipt: var(--sd-font-receipt, ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace);
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 14px 8px;
+  background: var(--_paper);
+  color: var(--_ink);
+  font: 12px/1.45 var(--_font-receipt);
+  text-align: left;
+}
+.sd-r-badge { margin: 0 0 10px; padding: 3px 0; border: 1px solid var(--_ink); text-align: center; font-weight: 700; letter-spacing: 0.12em; }
+.sd-r-name { text-align: center; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+.sd-r-center { text-align: center; }
+.sd-r-rule { margin: 9px 0; border: 0; border-top: 1px dashed var(--_ink-soft); }
+.sd-r-row { display: flex; justify-content: space-between; gap: 12px; }
+.sd-r-row > span:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sd-r-item { margin-bottom: 5px; }
+.sd-r-item-name { overflow-wrap: anywhere; }
+.sd-r-item .sd-r-row { color: var(--_ink-soft); }
+.sd-r-strong { font-size: 13px; font-weight: 700; color: var(--_ink) !important; }
+.sd-r-note { font-size: 11px; color: var(--_ink-soft); }
+.sd-r-foot { text-align: center; font-size: 11px; color: var(--_ink-soft); }
+.sd-r-barcode { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: 10px; }
+.sd-r-barcode svg { max-width: 100%; height: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-toast { transition: opacity 120ms ease; }
+  .sd-paper { will-change: auto; }
+  .sd-feeding .sd-slot { animation: none; }
+  .sd-busy .sd-led { animation: none; }
+  .sd-actions-wrap { transition: none; }
+}

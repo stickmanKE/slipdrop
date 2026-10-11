@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SlipDrop — receipt toast for POS apps</title>
+<style>
+  :root {
+    --bg: #dde3ea;
+    --panel: #ffffff;
+    --ink: #1b2430;
+    --ink-soft: #5d6b7a;
+    --line: #cfd7e0;
+    --accent: #0f9b78;
+    --accent-ink: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: max(24px, env(safe-area-inset-top)) 16px 48px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding-top: 64px; }
+  h1 { margin: 0 0 6px; font-size: 32px; line-height: 1.15; letter-spacing: -0.02em; }
+  .lede { margin: 0 0 28px; max-width: 56ch; color: var(--ink-soft); }
+  .grid { display: grid; gap: 16px; grid-template-columns: 1.2fr 1fr; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border-radius: 14px; padding: 20px; }
+  h2 { margin: 0 0 14px; font-size: 15px; font-weight: 650; }
+  .line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .line small { display: block; color: var(--ink-soft); font-size: 13px; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .total { display: flex; justify-content: space-between; padding: 14px 0 16px; font-size: 20px; font-weight: 650; }
+  .charge {
+    width: 100%; min-height: 52px; border: 0; border-radius: 11px;
+    background: var(--accent); color: var(--accent-ink);
+    font: 650 17px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; cursor: pointer;
+  }
+  .charge:hover { filter: brightness(1.06); }
+  .charge:focus-visible, .seg input:focus-visible + span, .check input:focus-visible { outline: 3px solid #0b6f56; outline-offset: 2px; }
+  fieldset { margin: 0 0 18px; padding: 0; border: 0; }
+  legend { padding: 0; margin-bottom: 8px; font-size: 14px; color: var(--ink-soft); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg label { position: relative; }
+  .seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .seg span { display: block; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .seg input:checked + span { background: var(--ink); color: #fff; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+  .check input { margin-top: 3px; }
+  .check small { display: block; color: var(--ink-soft); }
+  pre {
+    margin: 16px 0 0; padding: 18px; overflow-x: auto;
+    background: #17202b; color: #dbe6f2; border-radius: 14px;
+    font: 13px/1.6 ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  }
+  footer { margin-top: 28px; color: var(--ink-soft); font-size: 14px; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SlipDrop</h1>
+  <p class="lede">A status banner drops in, the receipt feeds out of it like printer paper, and the receipt goes to your printer. Plain JavaScript, no dependencies.</p>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="till">
+      <h2 id="till">Current sale</h2>
+      <div class="line"><div>Notebook A5<small>2 × 250.00</small></div><div class="num">500.00</div></div>
+      <div class="line"><div>Ballpoint pens, box of 12<small>1 × 450.00</small></div><div class="num">450.00</div></div>
+      <div class="line"><div>Desk lamp<small>1 × 600.00</small></div><div class="num">600.00</div></div>
+      <div class="total"><span>Total</span><span class="num">KES 1,550.00</span></div>
+      <button class="charge" id="charge" type="button">Take payment</button>
+    </section>
+
+    <section class="panel" aria-labelledby="opts">
+      <h2 id="opts">Options</h2>
+      <fieldset>
+        <legend>Paper width</legend>
+        <div class="seg">
+          <label><input type="radio" name="paper" value="58mm"><span>58 mm</span></label>
+          <label><input type="radio" name="paper" value="80mm" checked><span>80 mm</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Copies</legend>
+        <div class="seg">
+          <label><input type="radio" name="copies" value="1" checked><span>1</span></label>
+          <label><input type="radio" name="copies" value="2"><span>2 (shop copy)</span></label>
+        </div>
+      </fieldset>
+      <label class="check">
+        <input type="checkbox" id="realprint">
+        <span>Send to my printer<small>Off by default so the demo does not open a print dialog. “Print again” always prints.</small></span>
+      </label>
+    </section>
+  </div>
+
+<pre><code>SlipDrop.show({
+  amount: 'KES 1,550.00',
+  detail: '3 items · Cash',
+  paper: '80mm',
+  copies: 2,
+  copyLabels: [null, 'SHOP COPY'],
+  receipt: {
+    business: { name: 'Corner Stationers', lines: ['Moi Avenue, Mombasa'] },
+    items: [{ name: 'Notebook A5', qty: 2, unit: '250.00', total: '500.00' }],
+    totals: [{ label: 'TOTAL', value: '1,550.00', strong: true }],
+    barcode: 'RCT-004182'
+  }
+});</code></pre>
+
+  <footer>Created by <a href="https://github.com/stickmanKE">Mark Mgharo</a> · MIT licensed · <a href="https://github.com/stickmanKE/slipdrop">Source and documentation on GitHub</a>.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="../dist/slipdrop.js"></script>
+<script>
+  function chosen(name) { return document.querySelector('input[name="' + name + '"]:checked').value; }
+
+  document.getElementById('charge').addEventListener('click', function () {
+    var copies = parseInt(chosen('copies'), 10);
+    SlipDrop.show({
+      amount: 'KES 1,550.00',
+      detail: '3 items · Cash',
+      paper: chosen('paper'),
+      copies: copies,
+      copyLabels: copies > 1 ? [null, 'SHOP COPY'] : [],
+      print: document.getElementById('realprint').checked ? 'auto' : 'manual',
+      receipt: {
+        business: { name: 'Corner Stationers', lines: ['Moi Avenue, Mombasa', 'Tel 0700 000 000'] },
+        meta: [
+          { label: 'Receipt', value: 'RCT-004182' },
+          { label: 'Date', value: '11 Oct 2026 14:32' },
+          { label: 'Served by', value: 'Amina' }
+        ],
+        items: [
+          { name: 'Notebook A5', qty: 2, unit: '250.00', total: '500.00' },
+          { name: 'Ballpoint pens, box of 12', qty: 1, unit: '450.00', total: '450.00' },
+          { name: 'Desk lamp', qty: 1, unit: '600.00', total: '600.00' }
+        ],
+        totals: [
+          { label: 'Subtotal', value: '1,550.00' },
+          { label: 'TOTAL (KES)', value: '1,550.00', strong: true }
+        ],
+        payments: [
+          { label: 'Cash', value: '2,000.00' },
+          { label: 'Change', value: '450.00' }
+        ],
+        footer: ['Goods once sold are not returnable', 'Thank you for shopping with us'],
+        barcode: 'RCT-004182'
+      }
+    });
+  });
+</script>
+</body>
+</html>

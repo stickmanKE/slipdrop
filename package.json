@@ -1,0 +1,45 @@
+{
+  "name": "slipdrop",
+  "version": "1.0.0",
+  "description": "A smooth, animated receipt toast and thermal-paper feed for POS and checkout web apps.",
+  "main": "dist/slipdrop.js",
+  "style": "dist/slipdrop.css",
+  "files": [
+    "dist",
+    "src",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "keywords": [
+    "checkout-ui",
+    "mpesa",
+    "open-source",
+    "point-of-sale",
+    "pos",
+    "receipt",
+    "receipt-animation",
+    "thermal-printer",
+    "thermal-receipt-animation",
+    "toast",
+    "vanilla-js"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stickmanKE/slipdrop.git"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  },
+  "author": "Mark Mgharo",
+  "bugs": {
+    "url": "https://github.com/stickmanKE/slipdrop/issues"
+  },
+  "homepage": "https://stickmanKE.github.io/slipdrop/"
+}
