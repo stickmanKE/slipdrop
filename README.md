@@ -1,5 +1,14 @@
 # SlipDrop
 
+## SlipDrop in Action
+
+SlipDrop transforms ordinary POS receipt notifications into a polished checkout experience. The receipt scrolls out smoothly beneath the status banner, ready to print or reprint.
+
+![SlipDrop receipt animation demo](assets/slipdrop_receipt.png)
+
+*Live receipt preview from the SlipDrop demo.*
+
+
 **Created and maintained by [Mark Mgharo](https://github.com/stickmanKE).**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
